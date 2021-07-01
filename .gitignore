@@ -21,3 +21,7 @@ pnpm-debug.log*
 *.njsproj
 *.sln
 *.sw?
+public/images/body.png:Zone.Identifier
+public/images/eye.png:Zone.Identifier
+public/images/left.png:Zone.Identifier
+public/images/right.png:Zone.Identifier
