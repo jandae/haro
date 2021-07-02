@@ -65,8 +65,8 @@ export default {
 					console.log(data.name)
 
 				} else if (data.event == 'message') {
-					// if (!$this.show_message) {
-						// $this.message = data.message
+					if (!$this.show_message) {
+						$this.message = data.message
 						$this.show_message = true
 
 						let letters = data.message.split('')
@@ -79,7 +79,7 @@ export default {
 							$this.show_message = false
 							$this.message = ''
 						}, 3000)
-					// }
+					}
 				} else if (data.event == 'follow') {
 					$this.message = `Thanks for following ${data.user}!`
 					$this.show_message = true
