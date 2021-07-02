@@ -22,7 +22,9 @@ export default {
 			animation: 'idle',
 			eye_animation: '',
 			show_message: false,
-			message: ''
+			message: '',
+			delay: null,
+			follow_state: false
 		}
 	},
 	mounted () {
@@ -41,6 +43,8 @@ export default {
 	methods: {		
 		ws: function () {
 			let $this = this
+			let timer = null
+			
 			
 			console.log("Connecting to monty WebSocket Server")			
 			this.connection = new WebSocket('ws://localhost:1880/event')
@@ -51,8 +55,7 @@ export default {
 					location.reload()
 				}
 			}, 5000)
-
-
+			
 			this.connection.onmessage = function(event) {
 				let data = JSON.parse(event.data)
 				console.log(data)
@@ -66,25 +69,44 @@ export default {
 
 				} else if (data.event == 'message') {
 					if (!$this.show_message) {
-						$this.message = data.message
+						$this.message = ''						
 						$this.show_message = true
 
 						let letters = data.message.split('')
-						letters.forEach((letter, i) => {							
-							setTimeout(function(){
-								$this.message = `${$this.message}${letter}`								
-							}, i*50)
+						letters.forEach((letter, i) => {		
+							if (!$this.follow_state) {
+								timer = setTimeout(function(){
+									$this.message = `${$this.message}${letter}`								
+								}, i*50)
+							} else {
+								return 
+							}					
 						});
-						setTimeout(function(){
+						$this.delay = setTimeout(function(){
 							$this.show_message = false
 							$this.message = ''
 						}, 3000)
 					}
 				} else if (data.event == 'follow') {
-					$this.message = `Thanks for following ${data.user}!`
-					$this.show_message = true
-					$this.animation = 'jump'
+					clearTimeout(timer)
+					clearTimeout($this.delay)
+					$this.follow_state = true
+					$this.show_message = false
+					$this.message = ''
+					setTimeout(function(){						
+						$this.show_message = true
+						$this.animation = 'jump'
+
+						let letters = `Thanks for following ${data.user}!`.split('')
+						letters.forEach((letter, i) => {									
+							setTimeout(function(){
+								$this.message = `${$this.message}${letter}`								
+							}, i*50)							
+						});
+					}, 1000)
+					
 					setTimeout(function(){
+						$this.follow_state = false
 						$this.animation = 'idle'
 						$this.show_message = false
 					}, 6000)
