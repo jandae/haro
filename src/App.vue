@@ -1,5 +1,6 @@
 <template>
 	<div id="app">
+		<div class="message" v-show="show_message">{{message}}</div>
 		<div :class="'haro ' + animation ">
 			<img class="left" src="images/left.png"/>
 			<img class="body" src="images/body.png"/>
@@ -8,8 +9,7 @@
 				<div></div>
 				<div></div>
 			</div>			
-		</div>		
-		<div class="message" v-show="show_message">{{message}}</div>
+		</div>				
 	</div>
 </template>
 
@@ -24,7 +24,9 @@ export default {
 			show_message: false,
 			message: '',
 			delay: null,
-			follow_state: false
+			follow_state: false,
+			queue: [],
+			doit: true
 		}
 	},
 	mounted () {
@@ -39,12 +41,16 @@ export default {
 				$this.eye_animation = ''				
 			}
 		}, 5000)
+
+		setInterval(() => {
+			if($this.doit && $this.queue.length) {
+				$this.check_queue()
+			}
+		}, 500)		
 	},
 	methods: {		
 		ws: function () {
-			let $this = this
-			let timer = null
-			
+			let $this = this			
 			
 			console.log("Connecting to monty WebSocket Server")			
 			this.connection = new WebSocket('ws://localhost:1880/event')
@@ -57,25 +63,55 @@ export default {
 			}, 5000)
 			
 			this.connection.onmessage = function(event) {
-				let data = JSON.parse(event.data)
-				console.log(data)
-				if (data.event == 'first_chat') {
-					$this.show_message = true
-					$this.message = `Haro, haro, wassup ${data.name}!`
-					setTimeout(function(){
-						$this.show_message = false
-					}, 3000)
-					console.log(data.name)
+				let msg_data = JSON.parse(event.data)
+				$this.queue.push(msg_data)
+				console.log($this.queue)									
+			}
 
-				} else if (data.event == 'message') {
-					if (!$this.show_message) {
-						$this.message = ''						
-						$this.show_message = true
+			this.connection.onopen = function() {				
+				console.log("Successfully connected to monty websocket server...")
+			}
+		},
+		check_queue: function() {
+			let $this = this
+			if($this.doit && $this.queue.length) {				
+				console.log($this.queue.length)
+				console.log('entered')
+				$this.show_message = true
+				$this.queue.forEach((data, i) => {						
+					if (data.event == 'first_chat' && $this.doit) {
+						$this.doit = false
+						$this.message = ''	
+						let message = `Haro, haro, wassup ${data.name}!`
 
+						let letters = message.split('')
+						letters.forEach((letter, i) => {		
+							if (!$this.follow_state) {
+								setTimeout(function(){
+									$this.message = `${$this.message}${letter}`								
+								}, i*50)
+							} else {
+								return 
+							}					
+						});
+
+
+						setTimeout(function(){
+							$this.queue.splice(i, 1); 	
+							console.log('removed')
+							$this.show_message = false
+							$this.message = ''
+							$this.doit = true
+						}, 6000)
+						console.log(data.name)
+
+					} else if (data.event == 'message' && $this.doit) {	
+						$this.message = ''											
+						$this.doit = false
 						let letters = data.message.split('')
 						letters.forEach((letter, i) => {		
 							if (!$this.follow_state) {
-								timer = setTimeout(function(){
+								setTimeout(function(){
 									$this.message = `${$this.message}${letter}`								
 								}, i*50)
 							} else {
@@ -83,47 +119,63 @@ export default {
 							}					
 						});
 						$this.delay = setTimeout(function(){
+							$this.queue.splice(i, 1); 	
 							$this.show_message = false
 							$this.message = ''
-						}, 3000)
-					}
-				} else if (data.event == 'follow') {
-					clearTimeout(timer)
-					clearTimeout($this.delay)
-					$this.follow_state = true
-					$this.show_message = false
-					$this.message = ''
-					setTimeout(function(){						
-						$this.show_message = true
+							$this.doit = true
+						}, 5000)							
+					} else if (data.event == 'follow' && $this.doit) {
+						$this.follow_state = true
+						$this.message = ''
+						setTimeout(function(){						
+							$this.animation = 'jump'
+
+							let letters = `Thanks for following ${data.user}!`.split('')
+							letters.forEach((letter, i) => {									
+								setTimeout(function(){
+									$this.message = `${$this.message}${letter}`								
+								}, i*50)							
+							});
+						}, 1000)
+						
+						setTimeout(function(){
+							$this.follow_state = false
+							$this.animation = 'idle'
+							$this.show_message = false
+							$this.message = ''
+							$this.doit = true
+						}, 6000)
+					} else if (data.event == 'jump') {
 						$this.animation = 'jump'
-
-						let letters = `Thanks for following ${data.user}!`.split('')
-						letters.forEach((letter, i) => {									
-							setTimeout(function(){
-								$this.message = `${$this.message}${letter}`								
-							}, i*50)							
-						});
-					}, 1000)
-					
-					setTimeout(function(){
-						$this.follow_state = false
-						$this.animation = 'idle'
-						$this.show_message = false
-					}, 6000)
-				}
+						setTimeout(function(){						
+							$this.animation = 'idle'						
+						}, 6000)
+					}											
+					console.log($this.queue)
+					console.log($this.doit)
+				});
 			}
-
-			this.connection.onopen = function() {				
-				console.log("Successfully connected to monty websocket server...")
-			}
-		},
+		}
 	}
 }
 </script>
 
 <style lang="scss">
+
+@font-face {
+	font-family: 'amuroregular';
+    src: url('./assets/fonts/amuro-82yn-webfont.woff2') format('woff2'),
+         url('./assets/fonts/amuro-82yn-webfont.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+
+body {
+	background: #000;		
+}
+
 #app {
-	font-family: 'Front Page Neue';	
+	font-family: 'amuroregular';
 	position: relative;
 }
 
@@ -203,13 +255,12 @@ export default {
 			animation-duration: 0.5s;
 			animation-iteration-count: infinite;     
 			animation-delay: 2s;
-			animation-name: blink;
-			
+			animation-name: blink;			
 		}
 	}
 
 	& > div {
-		background: red;
+		background: rgb(143, 39, 39);
 		width: 20px;
 		height: 40px;		       
 		border-radius: 20px / 50px;
@@ -218,12 +269,14 @@ export default {
 
 .message {
 	position: absolute;
-    left: 20%;
-    bottom: 200px;
-    background: #fff;
+	left: 50px;
+    top: -270px;  
     padding: 10px 20px;
     border-radius: 5px;
-    font-size: 3em;
+    font-size: 10em;
+    z-index: 5;
+	background: #dd803e;
+    color: #fff;
 }
 
 @keyframes jump {
@@ -255,7 +308,13 @@ export default {
 }
 
 @keyframes blink {
-	0%   {  box-shadow: 0px 0px 15px 6px red; }      
-	100%   {  box-shadow: none; }   
+	0%   {  
+		box-shadow: 0px 0px 15px 6px red; 
+		background: rgb(233, 58, 58);
+	}      
+	100%   {
+		box-shadow: none; 
+		background: rgb(143, 39, 39);
+	}   
 }
 </style>
