@@ -1,6 +1,6 @@
 <template>
 	<div id="app">
-		<div class="message" v-show="show_message">{{message}}</div>
+		<div class="message" v-show="show_message">{{message}} <span class="username">{{username}}</span></div>
 		<div :class="'haro ' + animation ">
 			<img class="left" src="images/left.png"/>
 			<img class="body" src="images/body.png"/>
@@ -26,7 +26,8 @@ export default {
 			delay: null,
 			follow_state: false,
 			queue: [],
-			doit: true
+			doit: true,
+			username: ''
 		}
 	},
 	mounted () {
@@ -82,18 +83,34 @@ export default {
 					if (data.event == 'first_chat' && $this.doit) {
 						$this.doit = false
 						$this.message = ''	
-						let message = `Haro, haro, wassup ${data.name}!`
+						let message = `Haro, haro, wassup`
 
 						let letters = message.split('')
 						letters.forEach((letter, i) => {		
 							if (!$this.follow_state) {
 								setTimeout(function(){
-									$this.message = `${$this.message}${letter}`								
+									$this.message = `${$this.message}${letter}`																	
 								}, i*50)
+								
+								
+
 							} else {
 								return 
 							}					
 						});
+						setTimeout(function(){
+
+							let letters2 = data.name.split('')
+							letters2.forEach((letter2, i) => {		
+								if (!$this.follow_state) {
+									setTimeout(function(){
+										$this.username = `${$this.username}${letter2}`																	
+									}, i*50)
+								} else {
+									return 
+								}					
+							});							
+						}, (letters.length-1)*50)						
 
 
 						setTimeout(function(){
@@ -101,6 +118,7 @@ export default {
 							console.log('removed')
 							$this.show_message = false
 							$this.message = ''
+							$this.username = ''
 							$this.doit = true
 						}, 6000)
 						console.log(data.name)
@@ -277,6 +295,11 @@ body {
     z-index: 5;
 	background: #dd803e;
     color: #fff;
+	text-shadow: 0px 0px 4px rgba(0,0,0,0.82);
+
+	.username {
+		color: #ee82ee;
+	}
 }
 
 @keyframes jump {
