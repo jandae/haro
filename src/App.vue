@@ -1,6 +1,11 @@
 <template>
 	<div id="app">
-		<div class="message" v-show="show_message">{{message}} <span class="username">{{username}}</span></div>
+		
+		<div class="message" v-show="show_message">
+			<div class="header">{{header}}</div>
+			<!-- The quick brown fox jumps -->
+			{{message}} <span class="username">{{username}}</span>
+		</div>
 		<div :class="'haro ' + animation ">
 			<img class="left" src="images/left.png"/>
 			<img class="body" src="images/body.png"/>
@@ -27,7 +32,8 @@ export default {
 			follow_state: false,
 			queue: [],
 			doit: true,
-			username: ''
+			username: '',
+			header: ''
 		}
 	},
 	mounted () {
@@ -126,6 +132,7 @@ export default {
 					} else if (data.event == 'message' && $this.doit) {	
 						$this.message = ''											
 						$this.doit = false
+						$this.header = data.header 
 						let letters = data.message.split('')
 						letters.forEach((letter, i) => {		
 							if (!$this.follow_state) {
@@ -141,6 +148,7 @@ export default {
 							$this.show_message = false
 							$this.message = ''
 							$this.doit = true
+							$this.header = ''
 						}, 5000)							
 					} else if (data.event == 'follow' && $this.doit) {
 						$this.follow_state = true
@@ -291,15 +299,24 @@ body {
     top: -270px;  
     padding: 10px 20px;
     border-radius: 5px;
-    font-size: 10em;
+    font-size: 5em;
     z-index: 5;
 	background: #dd803e;
     color: #fff;
 	text-shadow: 0px 0px 4px rgba(0,0,0,0.82);
+	background-color: rgba(159, 82, 28, 0.4);
+    padding: 15px 60px;
 
 	.username {
 		color: #ee82ee;
 	}
+}
+
+.header {
+	position: absolute;
+    font-size: 0.5em;
+	right: 20px;
+    top: -10px;
 }
 
 @keyframes jump {
