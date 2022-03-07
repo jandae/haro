@@ -1,7 +1,7 @@
 <template>
 	<div id="app">
 		
-		<div class="message" v-show="show_message">
+		<div class="message" v-show="show_message" :class="{'show':show_message}">
 			<div class="header">{{header}}</div>
 			<!-- The quick brown fox jumps -->
 			{{message}} <span class="username">{{username}}</span>
@@ -203,6 +203,7 @@ body {
 #app {
 	font-family: 'amuroregular';
 	position: relative;
+	padding-top: 120px;
 }
 
 .haro {
@@ -296,7 +297,7 @@ body {
 .message {
 	position: absolute;
 	left: 50px;
-    top: -270px;  
+	bottom: 770px;
     padding: 10px 20px;
     border-radius: 5px;
     font-size: 5em;
@@ -306,6 +307,16 @@ body {
 	text-shadow: 0px 0px 4px rgba(0,0,0,0.82);
 	background-color: rgba(159, 82, 28, 0.4);
     padding: 15px 60px;
+	padding-top: 70px;
+	text-shadow: 4px 2px 2px #000000;
+	transition: opacity 12s linear;
+	overflow: hidden;
+
+	&.show {
+		.header {
+
+		}
+	}
 
 	.username {
 		color: #ee82ee;
@@ -314,10 +325,12 @@ body {
 
 .header {
 	position: absolute;
-    font-size: 0.5em;
+    font-size: 1em;
 	right: 20px;
     top: -10px;
 }
+
+
 
 @keyframes jump {
 	0%   { transform: scale(1,1)      translateY(0); }
