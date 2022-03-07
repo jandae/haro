@@ -198,6 +198,7 @@ export default {
 
 body {
 	background: #000;		
+	font-size: 1.3em;
 }
 
 #app {
@@ -311,6 +312,8 @@ body {
 	text-shadow: 4px 2px 2px #000000;
 	transition: opacity 12s linear;
 	overflow: hidden;
+	display: block;
+	min-width: 1000px;
 
 	&.show {
 		.header {
